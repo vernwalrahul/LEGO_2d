@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from itertools import chain
 import helper
+import astar
 import random
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -40,7 +41,18 @@ def main():
     start_n, goal_n = helper.get_valid_start_goal(dense_G, occ_grid, row, col, inc = 0.02)
     start_pos = helper.state_to_numpy(dense_G.node[start_n]['state'])
     goal_pos = helper.state_to_numpy(dense_G.node[goal_n]['state'])
-    visualize_nodes(occ_grid,[], start_pos, goal_pos)
+
+    path_nodes = astar.astar(dense_G, start_n, goal_n, occ_grid, row, col)
+    points_x = []
+    points_y = []
+    count_h = 1
+    print("path_nodes = ", path_nodes)
+    for node in path_nodes:
+        s = helper.state_to_numpy(dense_G.node[node]['state'])
+        points_x.append(s[0])
+        points_y.append(s[1])
+        count_h += 1
+    visualize_nodes(occ_grid,np.array(list(zip(points_x,points_y))), start_pos, goal_pos)
     
 if __name__ == '__main__':
     main()

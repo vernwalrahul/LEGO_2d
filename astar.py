@@ -21,7 +21,7 @@ def compute_distance_id(G, u, v):
 def get_heuristic(G, v, goal_v):
     return compute_distance_id(G, v, goal_v)
 
-def astar(G, start_v, goal_v, occ_g, ax1, h_weight=1, p = "astar_lego/", savefig = False):
+def astar(G, start_v, goal_v, occ_g, row, col, h_weight=1):
         queue = []
         heapq.heappush(queue, (0, 0, start_v))
         nodes = dict()
@@ -58,18 +58,11 @@ def astar(G, start_v, goal_v, occ_g, ax1, h_weight=1, p = "astar_lego/", savefig
                     lines = []
                     colors = []
                     lines.append([node1_pos, node2_pos])
-                    if not helper.is_edge_free(node1_pos, node2_pos, occ_g):
+                    if not helper.is_edge_free(node1_pos, node2_pos, occ_g, row, col):
                         colors.append((1,0,0,0.3))
                         lc = mc.LineCollection(lines, colors=colors, linewidths=1)
-                        ax1.add_collection(lc)
-                        if savefig:
-                            plt.savefig(p+str(count)+".jpg", bbox_inches='tight')
                         continue
                     colors.append((0,1,0,0.3))
-                    lc = mc.LineCollection(lines, colors=colors, linewidths=1)
-                    ax1.add_collection(lc)
-                    if savefig:
-                        plt.savefig(p+str(count)+".jpg", bbox_inches='tight')
                     heapq.heappush(queue, (cost_v, dis_v, v))
                     nodes[v] = (dis_v, cur)
         print(" count = ", count)
