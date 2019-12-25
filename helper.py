@@ -32,4 +32,60 @@ def get_random_occ_grid():
         if not (i==cr1 or i==cr2):
             occ_grid[i,col] = 0
     
-    return occ_grid
+    return occ_grid, row, col
+
+def state_to_numpy(state):
+    strlist = state.split()
+    val_list = [float(s) for s in strlist]
+    return np.array(val_list)
+
+def numpy_to_state(array):
+    state = ""
+    for i in range(len(array)):
+        state += str(array[i])+" "
+    return state
+
+def is_point_free(conf, occ_g, row, col, inc = 0):
+    px, py = conf[0], conf[1]
+    lx, ly = px-inc, py
+    rx, ry = px+inc, py
+    ux, uy = px, py+inc
+    dx, dy = px, py-inc
+    pc = []
+    if(int(10*px)==row):
+            pc = [(px, py), (ux, uy), (dx, dy)]
+    if(int(10*py)==col):
+            pc = [(px, py), (lx, ly), (rx, ry)]
+    for p in pc:
+        x, y = int(10*p[0]), int(10*p[1])
+        x = max(min(x, 9),0)
+        y = max(min(y, 9),0)
+        if(not occ_g[x][y]):
+            return 0
+    return 1
+
+def is_edge_free(node1_pos, node2_pos, occ_g, row, col, EDGE_DISCRETIZATION = 20, inc = 0.035):
+    diff = node2_pos - node1_pos
+    step = diff/EDGE_DISCRETIZATION
+
+    for i in range(EDGE_DISCRETIZATION+1):
+        nodepos = node1_pos + step*i
+        if(not is_point_free(nodepos, occ_g, row, col, inc)):
+            return 0
+    return 1
+
+def get_valid_start_goal(dense_G, occ_g, row, col, inc):
+    start_n = random.choice(list(dense_G.nodes()))
+    goal_n = random.choice(list(dense_G.nodes()))
+
+    start = state_to_numpy(dense_G.node[start_n]['state'])
+    goal = state_to_numpy(dense_G.node[goal_n]['state'])
+
+    while is_edge_free(start, goal, occ_g, row, col, EDGE_DISCRETIZATION = 100, inc = inc) or not (is_point_free(start, occ_g, row, col, inc) and is_point_free(goal, occ_g, row, col, inc)):
+        start_n = random.choice(list(dense_G.nodes()))
+        goal_n = random.choice(list(dense_G.nodes()))
+
+        start = state_to_numpy(dense_G.node[start_n]['state'])
+        goal = state_to_numpy(dense_G.node[goal_n]['state'])
+
+    return start_n, goal_n

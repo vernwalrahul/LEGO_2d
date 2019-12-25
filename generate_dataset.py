@@ -6,7 +6,7 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-def visualize_nodes(curr_occ_grid, curr_node_posns):
+def visualize_nodes(curr_occ_grid, curr_node_posns, start_pos, goal_pos):
     fig1 = plt.figure(figsize=(10,6), dpi=80)
     ax1 = fig1.add_subplot(111, aspect='equal')
 
@@ -20,6 +20,9 @@ def visualize_nodes(curr_occ_grid, curr_node_posns):
                     0.1,          # height
                     alpha=0.6
                     ))
+    plt.scatter(start_pos[0], start_pos[1], color="red", s=100, edgecolors='black', alpha=1, zorder=10) # init
+    plt.scatter(goal_pos[0], goal_pos[1], color="blue", s=100, edgecolors='black', alpha=1, zorder=10) # goal
+
     curr_node_posns = np.array(curr_node_posns)
     if len(curr_node_posns)>0:
         plt.scatter(curr_node_posns[:,0], curr_node_posns[:,1], s = 50, color = 'green')
@@ -32,8 +35,12 @@ def main():
     dense_G = nx.read_graphml("graphs/dense_graph.graphml")
     shallow_G = nx.read_graphml("graphs/shallow_graph.graphml")
 
-    occ_grid = helper.get_random_occ_grid()
-    visualize_nodes(occ_grid,[])
-                
+    occ_grid, row, col = helper.get_random_occ_grid()
+    print(row, col)
+    start_n, goal_n = helper.get_valid_start_goal(dense_G, occ_grid, row, col, inc = 0.02)
+    start_pos = helper.state_to_numpy(dense_G.node[start_n]['state'])
+    goal_pos = helper.state_to_numpy(dense_G.node[goal_n]['state'])
+    visualize_nodes(occ_grid,[], start_pos, goal_pos)
+    
 if __name__ == '__main__':
     main()
