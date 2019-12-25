@@ -1,6 +1,8 @@
 import random
 import numpy as np
 
+import math
+
 def get_rval(x):
     tmp = random.randint(0,99)
     if tmp%2:
@@ -89,3 +91,8 @@ def get_valid_start_goal(dense_G, occ_g, row, col, inc):
         goal = state_to_numpy(dense_G.node[goal_n]['state'])
 
     return start_n, goal_n
+
+def calc_weight_states(s1, s2):
+    config1 = state_to_numpy(s1)
+    config2 = state_to_numpy(s2)
+    return math.sqrt(float(np.sum((config2-config1)**2)))
