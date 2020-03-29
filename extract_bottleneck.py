@@ -73,8 +73,40 @@ def get_bottleneck_nodes(dense_G, sparse_G, path_nodes, occ_grid, dis, row, col,
 
     return common_nodes, curr_path_nodes
 
+def get_dm(path_nodes, bottleneck_nodes):
+    m = []
+    for i in range(1, len(bottleneck_nodes)-1):
+        n = int(bottleneck_nodes[i][1:])
+        m.append(path_nodes[n])
+    return m
+
+def get_lego_nodes(dense_G, sparse_G, start_n, goal_n, occ_grid, row, col, INC, COUNT = 10):
+    path_nodes, dis = astar.astar(dense_G, start_n, goal_n, occ_grid, row, col, inc = INC)
+    print("path_nodes = ", path_nodes)
+    bottleneck_nodes, curr_path_nodes = get_bottleneck_nodes(dense_G, sparse_G, path_nodes, occ_grid, dis, row, col, inc = INC)
+    # print("bottleneck_nodes = ", bottleneck_nodes)
+    dense_G.remove_nodes_from(bottleneck_nodes)
+    lego_nodes = []
+    dense_mapping = get_dm(path_nodes, bottleneck_nodes)
+    lego_nodes.extend(dense_mapping)
+    count = 1
+    while count < COUNT:
+        try:
+            path_nodes, dis = astar.astar(dense_G, start_n, goal_n, occ_grid, row, col, inc = INC)
+            print("path_nodes = ", path_nodes)
+            bottleneck_nodes, curr_path_nodes = get_bottleneck_nodes(dense_G, sparse_G, path_nodes, occ_grid, dis, row, col, inc = INC)
+            # print("bottleneck_nodes = ", bottleneck_nodes)
+            dense_mapping = get_dm(path_nodes, bottleneck_nodes)
+            dense_G.remove_nodes_from(dense_mapping)
+            lego_nodes.extend(dense_mapping)
+            count += 1
+        except:
+            break
+    return lego_nodes
+
 def main():
-    INC = 0.03
+    INC = 0.04
+    IS_LEGO = True
     dense_G = nx.read_graphml("graphs/dense_graph.graphml")
     sparse_G = nx.read_graphml("graphs/shallow_graph.graphml")
 
@@ -84,28 +116,42 @@ def main():
     start_pos = helper.state_to_numpy(dense_G.node[start_n]['state'])
     goal_pos = helper.state_to_numpy(dense_G.node[goal_n]['state'])
 
-    path_nodes, dis = astar.astar(dense_G, start_n, goal_n, occ_grid, row, col, inc = INC)
-    bottleneck_nodes, curr_path_nodes = get_bottleneck_nodes(dense_G, sparse_G, path_nodes, occ_grid, dis, row, col, inc = INC)
-    print("bottleneck_nodes = ", bottleneck_nodes)
-    points_x = []
-    points_y = []
-    print("path_nodes = ", path_nodes, bottleneck_nodes)
-    for node in path_nodes:
-        s = helper.state_to_numpy(dense_G.node[node]['state'])
-        points_x.append(s[0])
-        points_y.append(s[1])
+    dense_G1 = dense_G.copy()
+    if IS_LEGO:
+        lego_nodes = get_lego_nodes(dense_G1, sparse_G, start_n, goal_n, occ_grid, row, col, INC = INC)
+        points_x = []
+        points_y = []
+        print("lego_nodes = ", lego_nodes)
+        for node in lego_nodes:
+            s = helper.state_to_numpy(dense_G.node[node]['state'])
+            points_x.append(s[0])
+            points_y.append(s[1])
 
-    visualize_nodes(occ_grid,np.array(list(zip(points_x,points_y))), start_pos, goal_pos)
+        visualize_nodes(occ_grid,np.array(list(zip(points_x,points_y))), start_pos, goal_pos)
 
-    points_x = []
-    points_y = []
-    print("path_nodes = ", path_nodes, bottleneck_nodes)
-    for node in bottleneck_nodes:
-        s = helper.state_to_numpy(sparse_G.node[node]['state'])
-        points_x.append(s[0])
-        points_y.append(s[1])
+    else:
+        path_nodes, dis = astar.astar(dense_G, start_n, goal_n, occ_grid, row, col, inc = INC)
+        bottleneck_nodes, curr_path_nodes = get_bottleneck_nodes(dense_G, sparse_G, path_nodes, occ_grid, dis, row, col, inc = INC)
+        print("bottleneck_nodes = ", bottleneck_nodes)
+        points_x = []
+        points_y = []
+        print("path_nodes = ", path_nodes, bottleneck_nodes)
+        for node in path_nodes:
+            s = helper.state_to_numpy(dense_G.node[node]['state'])
+            points_x.append(s[0])
+            points_y.append(s[1])
 
-    visualize_nodes(occ_grid,np.array(list(zip(points_x,points_y))), start_pos, goal_pos)
+        visualize_nodes(occ_grid,np.array(list(zip(points_x,points_y))), start_pos, goal_pos)
+
+        points_x = []
+        points_y = []
+        print("path_nodes = ", path_nodes, bottleneck_nodes)
+        for node in bottleneck_nodes:
+            s = helper.state_to_numpy(sparse_G.node[node]['state'])
+            points_x.append(s[0])
+            points_y.append(s[1])
+
+        visualize_nodes(occ_grid,np.array(list(zip(points_x,points_y))), start_pos, goal_pos)
     
 if __name__ == '__main__':
     main()

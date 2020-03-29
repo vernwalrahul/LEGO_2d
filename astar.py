@@ -40,8 +40,8 @@ def astar(G, start_v, goal_v, occ_g, row, col, inc, h_weight=1):
                 while addv != []:
                     plan.append(addv)
                     addv = nodes[addv][1]
-                print(" count = ", count)
-                print(" dis = ", dis)
+                # print(" count = ", count)
+                # print(" dis = ", dis)
                 return np.array(plan[::-1]), dis
 
             next_cur = get_successors(G, cur)
